@@ -1,0 +1,4 @@
+name: Bask
+version: '${version}'
+main: jp.takejohn.bask.Bask
+api-version: '1.20'
