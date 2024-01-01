@@ -19,8 +19,8 @@ import java.util.StringJoiner;
 public record Pair<E, A extends E, B extends @NotNull Tuple<E>>(A first, B next) implements Tuple<E> {
 
     @Override
-    public boolean hasElements() {
-        return true;
+    public boolean isEmpty() {
+        return false;
     }
 
     @NotNull
@@ -32,7 +32,7 @@ public record Pair<E, A extends E, B extends @NotNull Tuple<E>>(A first, B next)
 
             @Override
             public boolean hasNext() {
-                return rest.hasElements();
+                return !rest.isEmpty();
             }
 
             @Override

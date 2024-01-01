@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public sealed interface Tuple<E> extends Iterable<E> permits Pair, Nil {
 
-    boolean hasElements();
+    boolean isEmpty();
 
     static <A> @NotNull Nil<A> of() {
         return Nil.getInstance();

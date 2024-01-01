@@ -22,8 +22,8 @@ public final class Nil<E> implements Tuple<E> {
     }
 
     @Override
-    public boolean hasElements() {
-        return false;
+    public boolean isEmpty() {
+        return true;
     }
 
     @Override
