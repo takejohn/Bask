@@ -43,7 +43,7 @@ public sealed interface Tuple<E> extends Iterable<E> permits Pair, Nil {
     }
 
     /**
-     * Returns a tuple containing two elements.
+     * Returns a tuple containing three elements.
      * @param e0 the first element
      * @param e1 the second element
      * @param e2 the third element
