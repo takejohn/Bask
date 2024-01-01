@@ -24,6 +24,7 @@ repositories {
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
     implementation "com.github.SkriptLang:Skript:2.7.3"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.1"
 }
 
 def targetJavaVersion = 17
@@ -40,6 +41,10 @@ tasks.withType(JavaCompile).configureEach {
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release.set(targetJavaVersion)
     }
+}
+
+test {
+    useJUnitPlatform()
 }
 
 processResources {
