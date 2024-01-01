@@ -8,7 +8,15 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.StringJoiner;
 
-public record Pair<E, F extends @NotNull Tuple>(E first, F next) implements Tuple {
+/**
+ * A tuple containing at least one element.
+ * @param first The first element of the tuple
+ * @param next The tuple containing leading elements
+ * @param <E> The base type of every element in the tuple
+ * @param <A> The type of <code>first</code>
+ * @param <B> The type of <code>next</code>
+ */
+public record Pair<E, A extends E, B extends @NotNull Tuple<E>>(A first, B next) implements Tuple<E> {
 
     @Override
     public boolean hasElements() {
@@ -17,10 +25,10 @@ public record Pair<E, F extends @NotNull Tuple>(E first, F next) implements Tupl
 
     @NotNull
     @Override
-    public Iterator<@Nullable Object> iterator() {
+    public Iterator<E> iterator() {
         return new Iterator<>() {
 
-            @NotNull Tuple rest = Pair.this;
+            @NotNull Tuple<E> rest = Pair.this;
 
             @Override
             public boolean hasNext() {
@@ -28,12 +36,12 @@ public record Pair<E, F extends @NotNull Tuple>(E first, F next) implements Tupl
             }
 
             @Override
-            public Object next() {
+            public E next() {
                 if (!hasNext()) {
                     throw new NoSuchElementException("This iterator has no more elements rest");
                 }
-                final @NotNull Pair<?, ?> pair = (Pair<?, ?>) rest;
-                final @Nullable Object result = pair.first();
+                final @NotNull Pair<E, ?, ?> pair = (Pair<E, ?, ?>) rest;
+                final E result = pair.first();
                 rest = pair.next();
                 return result;
             }

@@ -1,16 +1,25 @@
 package jp.takejohn.bask.util;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Iterator;
 
-public final class Nil implements Tuple {
+/**
+ * A tuple containing no elements
+ * @param <E> The base type
+ */
+public final class Nil<E> implements Tuple<E> {
 
-    public static final Nil INSTANCE = new Nil();
+    @SuppressWarnings("rawtypes")
+    private static final Nil INSTANCE = new Nil<>();
 
     private Nil() {}
+
+    @SuppressWarnings("unchecked")
+    public static <E> Nil<E> getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public boolean hasElements() {
@@ -18,7 +27,7 @@ public final class Nil implements Tuple {
     }
 
     @Override
-    public @NotNull Iterator<@Nullable Object> iterator() {
+    public @NotNull Iterator<E> iterator() {
         return Collections.emptyIterator();
     }
 
