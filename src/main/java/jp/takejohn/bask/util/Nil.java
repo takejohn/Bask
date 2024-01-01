@@ -16,6 +16,10 @@ public final class Nil<E> implements Tuple<E> {
 
     private Nil() {}
 
+    /**
+     * Returns the instance of Nil.
+     * @return the instance of Nil
+     */
     @SuppressWarnings("unchecked")
     public static <E> Nil<E> getInstance() {
         return INSTANCE;
