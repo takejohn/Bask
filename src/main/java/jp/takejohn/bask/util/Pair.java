@@ -11,12 +11,12 @@ import java.util.StringJoiner;
 /**
  * A tuple containing at least one element.
  * @param first The first element of the tuple
- * @param next The tuple containing leading elements
+ * @param rest The tuple containing leading elements
  * @param <E> The base type of every element in the tuple
  * @param <A> The type of <code>first</code>
- * @param <B> The type of <code>next</code>
+ * @param <B> The type of <code>rest</code>
  */
-public record Pair<E, A extends E, B extends @NotNull Tuple<E>>(A first, B next) implements Tuple<E> {
+public record Pair<E, A extends E, B extends @NotNull Tuple<E>>(A first, B rest) implements Tuple<E> {
 
     @Override
     public boolean isEmpty() {
@@ -42,7 +42,7 @@ public record Pair<E, A extends E, B extends @NotNull Tuple<E>>(A first, B next)
                 }
                 final @NotNull Pair<E, ?, ?> pair = (Pair<E, ?, ?>) rest;
                 final E result = pair.first();
-                rest = pair.next();
+                rest = pair.rest();
                 return result;
             }
 
