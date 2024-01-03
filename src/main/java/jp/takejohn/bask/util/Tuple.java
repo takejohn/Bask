@@ -15,6 +15,12 @@ public sealed interface Tuple<E> extends Iterable<E> permits Pair, Nil {
     boolean isEmpty();
 
     /**
+     * Return the number of elements in this tuple.
+     * @return the number of elements in this tuple
+     */
+    int size();
+
+    /**
      * Return a tuple containing no elements.
      * @return an empty tuple.
      * @see Nil

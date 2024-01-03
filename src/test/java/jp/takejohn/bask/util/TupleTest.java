@@ -26,6 +26,11 @@ class TupleTest {
         assertEquals("(def, 123)", dbl.toString());
         assertEquals("(ghi, 456, 7.89)", triple.toString());
 
+        assertEquals(0, nil.size());
+        assertEquals(1, single.size());
+        assertEquals(2, dbl.size());
+        assertEquals(3, triple.size());
+
         assertEquals(Tuple.of("ghi", 456, 7.89), triple);
     }
 

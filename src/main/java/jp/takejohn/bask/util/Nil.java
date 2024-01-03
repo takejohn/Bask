@@ -31,6 +31,11 @@ public final class Nil<E> implements Tuple<E> {
     }
 
     @Override
+    public int size() {
+        return 0;
+    }
+
+    @Override
     public @NotNull Iterator<E> iterator() {
         return Collections.emptyIterator();
     }

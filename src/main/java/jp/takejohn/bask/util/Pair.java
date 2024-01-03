@@ -23,6 +23,11 @@ public record Pair<E, A extends E, B extends @NotNull Tuple<E>>(A first, B rest)
         return false;
     }
 
+    @Override
+    public int size() {
+        return 1 + rest.size();
+    }
+
     @NotNull
     @Override
     public Iterator<E> iterator() {
