@@ -1,4 +1,4 @@
-package jp.takejohn.bask.annotations;
+package jp.takejohn.bask.processor;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
