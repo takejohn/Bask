@@ -1,4 +1,4 @@
-package jp.takejohn.bask;
+package jp.takejohn.bask.addon;
 
 import ch.njol.skript.Skript;
 import org.bukkit.plugin.java.JavaPlugin;

@@ -1,4 +1,4 @@
 name: Bask
 version: '${version}'
-main: jp.takejohn.bask.Bask
+main: jp.takejohn.bask.addon.Bask
 api-version: '1.20'

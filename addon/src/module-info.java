@@ -1,4 +1,4 @@
-module Bask.main {
+module Bask.addon {
 
     requires ch.njol.skript;
     requires org.bukkit;
