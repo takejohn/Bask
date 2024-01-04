@@ -1,2 +1,3 @@
 rootProject.name = 'Bask'
 include "addon"
+include "annotations"
