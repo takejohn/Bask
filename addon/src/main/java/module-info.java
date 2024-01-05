@@ -1,4 +1,4 @@
-module Bask.addon {
+module jp.takejohn.bask.addon {
 
     requires ch.njol.skript;
     requires org.bukkit;
