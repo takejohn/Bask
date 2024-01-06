@@ -1,4 +1,4 @@
-package jp.takejohn.bask.processor.util;
+package jp.takejohn.bask.util;
 
 import org.junit.jupiter.api.Test;
 

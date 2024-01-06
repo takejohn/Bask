@@ -1,4 +1,4 @@
-package jp.takejohn.bask.processor.util;
+package jp.takejohn.bask.util;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
