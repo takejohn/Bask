@@ -10,6 +10,8 @@ public final class ClassRegistry {
     }
 
     public static void load() {
+        loadClass(ResourceTypes.class);
+
         loadClass(ExprNone.class);
     }
 
