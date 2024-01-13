@@ -1,5 +1,7 @@
 package jp.takejohn.bask.elements;
 
+import jp.takejohn.bask.BaskAPI;
+import jp.takejohn.bask.ExceptionStoringResource;
 import jp.takejohn.bask.elements.expressions.ExprNone;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,7 +12,7 @@ public final class ClassRegistry {
     }
 
     public static void load() {
-        loadClass(ResourceTypes.class);
+        BaskAPI.register(ExceptionStoringResource.class);
 
         loadClass(ExprNone.class);
     }
