@@ -1,6 +1,8 @@
 package jp.takejohn.bask;
 
 import ch.njol.skript.classes.ClassInfo;
+import ch.njol.skript.classes.Parser;
+import ch.njol.skript.lang.ParseContext;
 import ch.njol.skript.registrations.Classes;
 import jp.takejohn.bask.annotations.SkriptDoc;
 import jp.takejohn.bask.annotations.SkriptType;
@@ -29,6 +31,24 @@ public final class BaskAPI {
             classInfo.user(skriptType.user());
             setDoc(classInfo, clazz.getAnnotation(SkriptDoc.class));
             setDoc(classInfo, clazz.getAnnotation(SkriptTypeUsage.class));
+            classInfo.parser(new Parser<>() {
+
+                @Override
+                public boolean canParse(@NotNull ParseContext context) {
+                    return false;
+                }
+
+                @Override
+                public @NotNull String toString(T o, int flags) {
+                    return toVariableNameString(o);
+                }
+
+                @Override
+                public @NotNull String toVariableNameString(T o) {
+                    return o.toString();
+                }
+
+            });
             Classes.registerClass(classInfo);
         }
     }
