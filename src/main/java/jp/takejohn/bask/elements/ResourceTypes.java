@@ -2,6 +2,7 @@ package jp.takejohn.bask.elements;
 
 import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.registrations.Classes;
+import jp.takejohn.bask.ExceptionStoringResource;
 
 public class ResourceTypes {
 
@@ -10,12 +11,9 @@ public class ResourceTypes {
     }
 
     static {
-        Classes.registerClass(new ClassInfo<>(AutoCloseable.class, "resource")
+        Classes.registerClass(new ClassInfo<>(ExceptionStoringResource.class, "resource")
                 .name("Resource")
                 .description("Represents a resource available in 'with' section")
-                .examples(
-                        "with open text file \"example.txt\":",
-                        "   send \"%resource%\"")
                 .since("0.1.0")
                 .user("resources?"));
 
