@@ -1,5 +1,8 @@
 package jp.takejohn.bask.io;
 
+import jp.takejohn.bask.annotations.SkriptDoc;
+import jp.takejohn.bask.annotations.SkriptType;
+import jp.takejohn.bask.annotations.SkriptTypeParse;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,6 +13,10 @@ import java.util.Objects;
 /**
  * An immutable binary data.
  */
+@SkriptType(value = "blob", user = "blobs?")
+@SkriptDoc(name = "Blob",
+        description = "An immutable binary data.",
+        since = "0.1.0")
 public final class Blob implements Serializable {
 
     private final byte @NotNull[] data;
@@ -20,6 +27,28 @@ public final class Blob implements Serializable {
      */
     public Blob(byte @NotNull... data) {
         this.data = Objects.requireNonNull(data, "data cannot be null");
+    }
+
+    /**
+     * Creates a Blob from a string.
+     * When <code>s</code> is a string, <code>Blob.valueOf(s).toString().equalsIgnoreCase(s)</code> should be true
+     * @param s a string represents the binary data in hexadecimal.
+     * @return a newly created Blob.
+     */
+    @SkriptTypeParse
+    @Contract("_ -> new")
+    public static @NotNull Blob valueOf(@NotNull String s) {
+        Objects.requireNonNull(s, "s cannot be null");
+        final int sLength = s.length();
+        if (sLength % 2 != 0) {
+            throw new IllegalArgumentException("the length of s is not divisible by 2");
+        }
+        final int dataLength = sLength / 2;
+        final byte[] data = new byte[dataLength];
+        for (int i = 0 ; i < dataLength ; i++) {
+            data[i] = (byte) Integer.parseUnsignedInt(s, i * 2, i * 2 + 2, 16);
+        }
+        return new Blob(data);
     }
 
     /**

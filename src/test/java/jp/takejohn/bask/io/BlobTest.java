@@ -18,6 +18,14 @@ class BlobTest {
     private static final Blob empty = new Blob();
 
     @Test
+    void valueOf() {
+        assertEquals(blob, Blob.valueOf("CAFEBABE"));
+        assertEquals(empty, Blob.valueOf(""));
+        assertThrows(IllegalArgumentException.class, () -> Blob.valueOf("123"));
+        assertThrows(NumberFormatException.class, () -> Blob.valueOf("0x"));
+    }
+
+    @Test
     void size() {
         assertEquals(4, blob.size());
         assertEquals(4, blob2.size());
@@ -53,5 +61,4 @@ class BlobTest {
     void testHashCode() {
         assertEquals(blob.hashCode(), blob4.hashCode());
     }
-
 }
