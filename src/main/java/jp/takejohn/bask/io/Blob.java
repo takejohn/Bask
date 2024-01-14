@@ -3,13 +3,14 @@ package jp.takejohn.bask.io;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 
 /**
  * An immutable binary data.
  */
-public final class Blob {
+public final class Blob implements Serializable {
 
     private final byte @NotNull[] data;
 
