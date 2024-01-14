@@ -12,7 +12,6 @@ import jp.takejohn.bask.annotations.SkriptTypeUsage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.MessageFormat;
@@ -164,11 +163,9 @@ public final class BaskAPI {
         return s -> {
             try {
                 return (T) method.invoke(null, s);
-            } catch (InvocationTargetException | IllegalAccessException e) {
-                throw new AssertionError(e);
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 Skript.error(MessageFormat.format(
-                        "\"{0}\" is not a valid {1}",
+                        "\"{0}\" cannot be parsed as (a) valid {1}",
                         s, Objects.requireNonNull(Classes.getExactClassInfo(returnType)).getCodeName()));
                 return null;
             }
