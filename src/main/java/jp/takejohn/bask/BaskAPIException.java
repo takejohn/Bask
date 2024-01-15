@@ -6,4 +6,8 @@ public class BaskAPIException extends RuntimeException {
         super(message);
     }
 
+    public BaskAPIException(Throwable cause) {
+        super(cause);
+    }
+
 }

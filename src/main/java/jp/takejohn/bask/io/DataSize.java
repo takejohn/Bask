@@ -40,6 +40,10 @@ public final class DataSize implements Serializable {
             this.representations = List.of(representations);
         }
 
+        public long multiply(long val) {
+            return Math.multiplyExact(multiple, val);
+        }
+
         public static @Nullable Unit forRepresentation(@NotNull String s) {
             for (@NotNull Unit unit : values()) {
                 for (@NotNull String representation : unit.representations) {
@@ -71,7 +75,11 @@ public final class DataSize implements Serializable {
         if (unit == null) {
             return null;
         }
-        return new DataSize(Long.parseLong(matcher.group(1)) * unit.multiple);
+        try {
+            return new DataSize(unit.multiply(Long.parseLong(matcher.group(1))));
+        } catch (NumberFormatException | ArithmeticException e) {
+            throw new NumberFormatException("\"" + s + "\" is too large to express as a data size");
+        }
     }
 
     @Contract(value = "_ -> new", pure = true)

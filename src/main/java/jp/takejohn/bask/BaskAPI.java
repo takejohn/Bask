@@ -10,6 +10,7 @@ import jp.takejohn.bask.classes.ContextParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.MessageFormat;
@@ -154,7 +155,7 @@ public final class BaskAPI {
         for (@NotNull Method method : methodMap.values()) {
             requireParseMethodType(method, returnType);
         }
-        return new ContextParser<T>() {
+        return new ContextParser<>() {
 
             @Override
             public boolean canParse(@NotNull ParseContext context) {
@@ -165,11 +166,15 @@ public final class BaskAPI {
             public T parse(@NotNull String s, @NotNull ParseContext context) {
                 try {
                     return (T) methodMap.get(context).invoke(null, s);
-                } catch (Exception e) {
+                } catch (InvocationTargetException e) {
+                    final @NotNull Throwable targetException = e.getTargetException();
                     Skript.error(MessageFormat.format(
                             "\"{0}\" cannot be parsed as a valid {1}: {2}",
-                            s, Objects.requireNonNull(Classes.getExactClassInfo(returnType)).getCodeName(), e.getMessage()));
+                            s, Objects.requireNonNull(Classes.getExactClassInfo(returnType)).getCodeName(),
+                            targetException.toString()));
                     return null;
+                } catch (IllegalAccessException e) {
+                    throw new BaskAPIException(e);
                 }
             }
 
