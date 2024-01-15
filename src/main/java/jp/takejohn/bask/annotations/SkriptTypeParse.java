@@ -7,10 +7,12 @@ import java.lang.annotation.Target;
 
 /**
  * Declares a static method should be used as a parser of a type in Skript.
- * This annotation must be used to mark at most one method in a single class.
+ * {@link #value()} must not be duplicated in a single class.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface SkriptTypeParse {
-    /* marker annotation */
+
+    SkriptParseContext[] value() default SkriptParseContext.DEFAULT;
+
 }

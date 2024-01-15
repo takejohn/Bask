@@ -5,6 +5,7 @@ import jp.takejohn.bask.annotations.SkriptType;
 import jp.takejohn.bask.annotations.SkriptTypeParse;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.List;
@@ -39,7 +40,7 @@ public final class DataSize implements Serializable {
             this.representations = List.of(representations);
         }
 
-        public static @NotNull Unit forRepresentation(@NotNull String s) {
+        public static @Nullable Unit forRepresentation(@NotNull String s) {
             for (@NotNull Unit unit : values()) {
                 for (@NotNull String representation : unit.representations) {
                     if (representation.equalsIgnoreCase(s)) {
@@ -47,7 +48,7 @@ public final class DataSize implements Serializable {
                     }
                 }
             }
-            throw new IllegalArgumentException(s + " is not a valid unit");
+            return null;
         }
 
     }
@@ -61,13 +62,16 @@ public final class DataSize implements Serializable {
     }
 
     @SkriptTypeParse
-    @Contract(value = "_ -> new", pure = true)
-    public static @NotNull DataSize valueOf(@NotNull String s) {
+    public static @Nullable DataSize valueOf(@NotNull String s) {
         final @NotNull Matcher matcher = pattern.matcher(s);
         if (!matcher.matches()) {
-            throw new IllegalArgumentException("\"" + s + "\" does not match the regex pattern " + pattern);
+            return null;
         }
-        return new DataSize(Long.parseLong(matcher.group(1)) * Unit.forRepresentation(matcher.group(2)).multiple);
+        final @Nullable Unit unit = Unit.forRepresentation(matcher.group(2));
+        if (unit == null) {
+            return null;
+        }
+        return new DataSize(Long.parseLong(matcher.group(1)) * unit.multiple);
     }
 
     @Contract(value = "_ -> new", pure = true)

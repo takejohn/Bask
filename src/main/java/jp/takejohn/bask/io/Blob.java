@@ -2,7 +2,6 @@ package jp.takejohn.bask.io;
 
 import jp.takejohn.bask.annotations.SkriptDoc;
 import jp.takejohn.bask.annotations.SkriptType;
-import jp.takejohn.bask.annotations.SkriptTypeParse;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +34,6 @@ public final class Blob implements Serializable {
      * @param s a string represents the binary data in hexadecimal.
      * @return a newly created Blob.
      */
-    @SkriptTypeParse
     @Contract("_ -> new")
     public static @NotNull Blob valueOf(@NotNull String s) {
         Objects.requireNonNull(s, "s cannot be null");

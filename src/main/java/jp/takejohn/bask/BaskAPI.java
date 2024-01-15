@@ -5,20 +5,17 @@ import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.classes.Parser;
 import ch.njol.skript.lang.ParseContext;
 import ch.njol.skript.registrations.Classes;
-import jp.takejohn.bask.annotations.SkriptDoc;
-import jp.takejohn.bask.annotations.SkriptType;
-import jp.takejohn.bask.annotations.SkriptTypeParse;
-import jp.takejohn.bask.annotations.SkriptTypeUsage;
+import jp.takejohn.bask.annotations.*;
+import jp.takejohn.bask.classes.ContextParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 
 public final class BaskAPI {
 
@@ -64,38 +61,31 @@ public final class BaskAPI {
     /**
      * Register a class as a type in Skript if it has a {@link SkriptType} annotation.
      * The class may have a {@link SkriptDoc} annotation for Skript's documentation.
-     * At most one method of the class can be marked with {@link SkriptTypeParse} annotation
+     * Some static methods of the class can be marked with {@link SkriptTypeParse} annotation
      * to parse a string into the type.
      * @param clazz a class to register
      */
     public static <T> void register(@NotNull Class<T> clazz) {
-        @Nullable Function<? super String, ? extends T> parseFunction = getParseFunction(clazz);
-        if (parseFunction != null) {
-            register(clazz, parseFunction);
-        } else {
-            register(clazz, new ToStringParser<>() {
-
-                @Override
-                public boolean canParse(@NotNull ParseContext context) {
-                    return false;
-                }
-
-            });
-        }
+        register(clazz, getContextParser(clazz));
     }
 
     /**
      * Register a class as a type in Skript if it has a {@link SkriptType} annotation.
      * The class may have a {@link SkriptDoc} annotation for Skript's documentation.
      * @param clazz a class to register
-     * @param parseFunction a function to parse a string into the type
+     * @param contextParser a {@link ContextParser} to parse a string into the type
      */
-    public static <T> void register(@NotNull Class<T> clazz, @NotNull Function<? super String, ? extends T> parseFunction) {
+    public static <T> void register(@NotNull Class<T> clazz, @NotNull ContextParser<T> contextParser) {
         register(clazz, new ToStringParser<>() {
 
             @Override
             public @Nullable T parse(@NotNull String s, @NotNull ParseContext context) {
-                return parseFunction.apply(s);
+                return contextParser.parse(s, context);
+            }
+
+            @Override
+            public boolean canParse(@NotNull ParseContext context) {
+                return contextParser.canParse(context);
             }
 
         });
@@ -131,44 +121,58 @@ public final class BaskAPI {
         }
     }
 
-    private static <T> @Nullable Function<? super String, ? extends T> getParseFunction(
+    private static <T> @NotNull ContextParser<T> getContextParser(
             @NotNull Class<T> clazz) {
-        final List<Method> foundMethods = new ArrayList<>();
+        final EnumMap<ParseContext, @NotNull Method> methodMap = new EnumMap<>(ParseContext.class);
         for (Method method : clazz.getDeclaredMethods()) {
-            if (method.getDeclaredAnnotation(SkriptTypeParse.class) != null) {
-                if (!Modifier.isStatic(method.getModifiers())) {
+            final @Nullable SkriptTypeParse skriptTypeParse = method.getAnnotation(SkriptTypeParse.class);
+            if (skriptTypeParse == null) {
+                continue;
+            }
+            if (!Modifier.isStatic(method.getModifiers())) {
+                throw new BaskAPIException(MessageFormat.format(
+                        "Class {0} has a non-static method {1} annotated with @{2}",
+                        clazz.getName(), method, SkriptTypeParse.class.getName()));
+            }
+            for (SkriptParseContext context : skriptTypeParse.value()) {
+                final @NotNull ParseContext parseContext = context.asParseContext();
+                if (methodMap.containsKey(parseContext)) {
                     throw new BaskAPIException(MessageFormat.format(
-                            "Class {0} has a non-static method {1} annotated with @{2}",
-                            clazz.getName(), method, SkriptTypeParse.class.getName()));
+                            "Class {0} has more than one method to parse in {1} context",
+                            clazz.getName(), context
+                    ));
                 }
-                foundMethods.add(method);
+                methodMap.put(parseContext, method);
             }
         }
-        final int methodCount = foundMethods.size();
-        if (methodCount > 1) {
-            throw new BaskAPIException(MessageFormat.format(
-                    "Class {0} has more than one static method annotated with @{1}",
-                    clazz.getName(), SkriptTypeParse.class.getName()));
-        }
-        if (methodCount == 1) {
-            return asParseFunction(foundMethods.get(0), clazz);
-        }
-        return null;
+        return asContextParser(methodMap, clazz);
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> @NotNull Function<? super String, ? extends T> asParseFunction(
-            @NotNull Method method, @NotNull Class<T> returnType) {
-        requireParseMethodType(method, returnType);
-        return s -> {
-            try {
-                return (T) method.invoke(null, s);
-            } catch (Exception e) {
-                Skript.error(MessageFormat.format(
-                        "\"{0}\" cannot be parsed as (a) valid {1}",
-                        s, Objects.requireNonNull(Classes.getExactClassInfo(returnType)).getCodeName()));
-                return null;
+    private static <T> @NotNull ContextParser<T> asContextParser(
+            @NotNull Map<ParseContext, @NotNull Method> methodMap, @NotNull Class<T> returnType) {
+        for (@NotNull Method method : methodMap.values()) {
+            requireParseMethodType(method, returnType);
+        }
+        return new ContextParser<T>() {
+
+            @Override
+            public boolean canParse(@NotNull ParseContext context) {
+                return methodMap.containsKey(context);
             }
+
+            @Override
+            public T parse(@NotNull String s, @NotNull ParseContext context) {
+                try {
+                    return (T) methodMap.get(context).invoke(null, s);
+                } catch (Exception e) {
+                    Skript.error(MessageFormat.format(
+                            "\"{0}\" cannot be parsed as a valid {1}: {2}",
+                            s, Objects.requireNonNull(Classes.getExactClassInfo(returnType)).getCodeName(), e.getMessage()));
+                    return null;
+                }
+            }
+
         };
     }
 
