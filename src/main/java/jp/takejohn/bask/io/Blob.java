@@ -3,6 +3,7 @@ package jp.takejohn.bask.io;
 import jp.takejohn.bask.BaskSyntaxException;
 import jp.takejohn.bask.annotations.SkriptDoc;
 import jp.takejohn.bask.annotations.SkriptType;
+import jp.takejohn.bask.annotations.SkriptTypeParse;
 import jp.takejohn.bask.util.Bytes;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -142,6 +143,7 @@ public final class Blob implements Serializable {
      * @param s a string represents the binary data.
      * @return a newly created Blob.
      */
+    @SkriptTypeParse
     public static @Nullable Blob valueOf(@NotNull String s) {
         Objects.requireNonNull(s, "s cannot be null");
         if (!s.startsWith("b\"") || !s.endsWith("\"")) {
