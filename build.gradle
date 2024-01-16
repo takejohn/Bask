@@ -23,7 +23,7 @@ repositories {
 
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
-    implementation "com.github.SkriptLang:Skript:2.7.3"
+    implementation "com.github.SkriptLang:Skript:2.8.0"
     testImplementation platform("org.junit:junit-bom:5.10.1")
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.1"
 }
