@@ -1,13 +1,15 @@
 package jp.takejohn.bask.io;
 
+import jp.takejohn.bask.BaskSyntaxException;
 import jp.takejohn.bask.annotations.SkriptDoc;
 import jp.takejohn.bask.annotations.SkriptType;
+import jp.takejohn.bask.util.Bytes;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * An immutable binary data.
@@ -17,6 +19,113 @@ import java.util.Objects;
         description = "An immutable binary data.",
         since = "0.1.0")
 public final class Blob implements Serializable {
+
+    public static final class BlobLiteralException extends BaskSyntaxException {
+
+        public BlobLiteralException(String message, int index) {
+            super("At index " + index + ": " + message);
+        }
+
+    }
+
+    private static final class Parser {
+
+        private final char @NotNull[] src;
+
+        private int index;
+
+        private int markedIndex;
+
+        private boolean isEnd;
+
+        public Parser(@NotNull String s) {
+            src = s.substring(2, s.length() - 1).toCharArray();  // characters between 'b"' and '"'
+            index = 0;
+            isEnd = !hasRestChars(1);
+        }
+
+        public @Nullable Blob parse() {
+            final @NotNull List<@NotNull Byte> byteList = new ArrayList<>();
+            while (!isEnd) {
+                byteList.add(next());
+            }
+            if (hasRestChars(1)) {
+                return null;
+            }
+            return new Blob(Bytes.toByteArray(byteList));
+        }
+
+        private boolean hasRestChars(int count) {
+            return src.length - index >= count;
+        }
+
+        private char nextChar() {
+            final char result = src[index];
+            index++;
+            if (!hasRestChars(1)) {
+                isEnd = true;
+            }
+            return result;
+        }
+
+        private void setMark() {
+            this.markedIndex = index;
+        }
+
+        private void resetMark() {
+            this.index = markedIndex;
+            if (hasRestChars(1)) {
+                isEnd = false;
+            }
+        }
+
+        private byte next() {
+            final char c = nextChar();
+            if (c == '\\') {
+                return nextAfterBackslash();
+            } else if (c == '"') {
+                return nextAfterQuote();
+            } else if (isPrintableAsciiCharacter(c)) {
+                return (byte) c;
+            } else {
+                throw new BlobLiteralException("Unexpected character + '" + c + "'", index);
+            }
+        }
+
+        private byte nextAfterBackslash() {
+            setMark();
+            final char escaped = nextChar();
+            if (escaped == '\\') {
+                return '\\';
+            } else if (escaped == 'x' && hasRestChars(2)) {
+                final char hi = nextChar();
+                final char lo = nextChar();
+                try {
+                    return (byte) Integer.parseUnsignedInt(new String(new char[]{ hi, lo }), 16);
+                } catch (NumberFormatException e) {
+                    resetMark();
+                    return '\\';
+                }
+            } else {
+                resetMark();
+                return '\\';
+            }
+        }
+
+        private byte nextAfterQuote() {
+            setMark();
+            if (isEnd) {
+                throw new BlobLiteralException("Unexpected end of blob literal", index);
+            }
+            final char escaped = nextChar();
+            if (escaped != '"') {
+                resetMark();
+                isEnd = true;
+            }
+            return '"';
+        }
+
+    }
 
     private final byte @NotNull[] data;
 
@@ -30,23 +139,15 @@ public final class Blob implements Serializable {
 
     /**
      * Creates a Blob from a string.
-     * When <code>s</code> is a string, <code>Blob.valueOf(s).toString().equalsIgnoreCase(s)</code> should be true
-     * @param s a string represents the binary data in hexadecimal.
+     * @param s a string represents the binary data.
      * @return a newly created Blob.
      */
-    @Contract("_ -> new")
-    public static @NotNull Blob valueOf(@NotNull String s) {
+    public static @Nullable Blob valueOf(@NotNull String s) {
         Objects.requireNonNull(s, "s cannot be null");
-        final int sLength = s.length();
-        if (sLength % 2 != 0) {
-            throw new IllegalArgumentException("the length of s is not divisible by 2");
+        if (!s.startsWith("b\"") || !s.endsWith("\"")) {
+            return null;
         }
-        final int dataLength = sLength / 2;
-        final byte[] data = new byte[dataLength];
-        for (int i = 0 ; i < dataLength ; i++) {
-            data[i] = (byte) Integer.parseUnsignedInt(s, i * 2, i * 2 + 2, 16);
-        }
-        return new Blob(data);
+        return new Parser(s).parse();
     }
 
     /**
@@ -67,26 +168,34 @@ public final class Blob implements Serializable {
     }
 
     /**
-     * Returns a hexadecimal representation of this Blob.
-     * The characters in the string are only <code>'0'</code> through <code>'9'</code>
-     * and <code>'a'</code> through <code>'f'</code>.
-     * When <code>blob</code> is an instance of <code>Blob</code>,
-     * <code>blob.toString().length()</code> should be equal to <code>blob.size() * 2</code>.
-     * @return The hexadecimal representation of this Blob
+     * Returns a string representation of this Blob.
+     * @return The string representation of this Blob
      */
     @Contract(value = " -> new", pure = true)
     @Override
     public @NotNull String toString() {
-        final @NotNull StringBuilder result = new StringBuilder();
+        final @NotNull StringBuilder result = new StringBuilder("b\"");
         for (byte b : data) {
             final int unsignedByte = b & 0xFF;
-            final @NotNull String hexString = Integer.toHexString(unsignedByte);
-            if (unsignedByte < 0x10) {
-                result.append('0').append(hexString);
+            if (isPrintableAsciiCharacter(unsignedByte)) {
+                if (unsignedByte == '"') {
+                    result.append("\"\"");
+                } else if (unsignedByte == '\\') {
+                    result.append("\\\\");
+                }else {
+                    result.append((char) unsignedByte);
+                }
             } else {
-                result.append(hexString);
+                result.append("\\x");
+                final @NotNull String hexString = Integer.toHexString(unsignedByte);
+                if (unsignedByte < 0x10) {
+                    result.append('0').append(hexString);
+                } else {
+                    result.append(hexString);
+                }
             }
         }
+        result.append('\"');
         return new String(result);
     }
 
@@ -106,6 +215,10 @@ public final class Blob implements Serializable {
     @Override
     public int hashCode() {
         return Arrays.hashCode(data);
+    }
+
+    private static boolean isPrintableAsciiCharacter(int c) {
+        return 0x20 <= c && c <= 0x7E;
     }
 
 }
