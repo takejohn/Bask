@@ -2,13 +2,15 @@ package jp.takejohn.bask.io;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Objects;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DataSizeTest {
 
-    private final DataSize one_byte = DataSize.valueOf("1B");
+    private final DataSize one_byte = Objects.requireNonNull(DataSize.valueOf("1B"));
 
-    private final DataSize four_kilobytes = DataSize.valueOf("4 kilobytes");
+    private final DataSize four_kilobytes = Objects.requireNonNull(DataSize.valueOf("4 kilobytes"));
 
     @Test
     void add() {
@@ -24,6 +26,12 @@ class DataSizeTest {
     void testToString() {
         assertEquals("1 byte", one_byte.toString());
         assertEquals("4096 bytes", four_kilobytes.toString());
+    }
+
+    @Test
+    void compareTo() {
+        assertEquals(-1, one_byte.compareTo(four_kilobytes));
+        assertEquals(1, four_kilobytes.compareTo(one_byte));
     }
 
 }
