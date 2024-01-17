@@ -135,7 +135,19 @@ public final class Blob implements Serializable {
      * @param data an array of bytes
      */
     public Blob(byte @NotNull... data) {
-        this.data = Objects.requireNonNull(data, "data cannot be null");
+        Objects.requireNonNull(data, "data cannot be null");
+        this.data = Arrays.copyOf(data, data.length);
+    }
+
+    /**
+     * Creates a Blob from a specified array of bytes.
+     * The data may be truncated or padded by zeros to make the size of the result as specified.
+     * @param data an array of bytes
+     * @param size the size of the Blob
+     */
+    public Blob(byte @NotNull[] data, int size) {
+        Objects.requireNonNull(data, "data cannot be null");
+        this.data = Arrays.copyOf(data, size);
     }
 
     /**

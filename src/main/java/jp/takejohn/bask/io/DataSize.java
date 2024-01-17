@@ -82,6 +82,10 @@ public final class DataSize implements Serializable {
         }
     }
 
+    public long asBytes() {
+        return bytes;
+    }
+
     @Contract(value = "_ -> new", pure = true)
     public @NotNull DataSize add(@NotNull DataSize val) {
         Objects.requireNonNull(val, "val cannnot be null");
