@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
         description = "A size of data",
         since = "0.1.0"
 )
-public final class DataSize implements Serializable {
+public final class DataSize implements Serializable, Comparable<DataSize> {
 
     private enum Unit {
 
@@ -82,6 +82,10 @@ public final class DataSize implements Serializable {
         }
     }
 
+    public long asBytes() {
+        return bytes;
+    }
+
     @Contract(value = "_ -> new", pure = true)
     public @NotNull DataSize add(@NotNull DataSize val) {
         Objects.requireNonNull(val, "val cannnot be null");
@@ -119,6 +123,12 @@ public final class DataSize implements Serializable {
             return "1 byte";
         }
         return bytes + " bytes";
+    }
+
+    @Override
+    public int compareTo(@NotNull DataSize o) {
+        Objects.requireNonNull(o, "o cannot be null");
+        return Long.compare(this.bytes, o.bytes);
     }
 
 }
