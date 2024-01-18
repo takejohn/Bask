@@ -23,6 +23,12 @@ class DataSizeTest {
     }
 
     @Test
+    void multiply() {
+        assertEquals(DataSize.valueOf("42 bytes"), one_byte.multiply(42));
+        assertEquals(DataSize.valueOf("4 megabytes"), four_kilobytes.multiply(1024));
+    }
+
+    @Test
     void testToString() {
         assertEquals("1 byte", one_byte.toString());
         assertEquals("4096 bytes", four_kilobytes.toString());
@@ -33,5 +39,4 @@ class DataSizeTest {
         assertEquals(-1, one_byte.compareTo(four_kilobytes));
         assertEquals(1, four_kilobytes.compareTo(one_byte));
     }
-
 }

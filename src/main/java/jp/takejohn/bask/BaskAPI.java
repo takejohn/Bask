@@ -7,9 +7,11 @@ import ch.njol.skript.lang.ParseContext;
 import ch.njol.skript.registrations.Classes;
 import jp.takejohn.bask.annotations.*;
 import jp.takejohn.bask.classes.ContextParser;
+import jp.takejohn.bask.util.Primitives;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.arithmetic.Arithmetics;
+import org.skriptlang.skript.lang.arithmetic.Operation;
 import org.skriptlang.skript.lang.arithmetic.Operator;
 
 import java.lang.reflect.InvocationTargetException;
@@ -36,10 +38,33 @@ public final class BaskAPI {
 
     }
 
-    @FunctionalInterface
-    private interface OperationMethod {
+    private abstract static class OperationMethod<L, R, T> implements Operation<L, R, T> {
 
-        Object invoke(Object left, Object right) throws IllegalAccessException, InvocationTargetException;
+        public final Class<L> leftType;
+
+        public final Class<R> rightType;
+
+        public final Class<T> returnType;
+
+        private OperationMethod(Class<L> leftType, Class<R> rightType, Class<T> returnType) {
+            this.leftType = leftType;
+            this.rightType = rightType;
+            this.returnType = returnType;
+        }
+
+        public abstract T invoke(L left, R right) throws IllegalAccessException, InvocationTargetException;
+
+        @Override
+        public T calculate(@NotNull L left, @NotNull R right) {
+            try {
+                return invoke(left, right);
+            } catch (InvocationTargetException e) {
+                Skript.error("Operation failed: " + e.getTargetException());
+                return null;
+            } catch (IllegalAccessException e) {
+                throw new BaskAPIException(e);
+            }
+        }
 
     }
 
@@ -213,16 +238,35 @@ public final class BaskAPI {
             if (skriptOperation == null) {
                 continue;
             }
-            final @NotNull Operator operator = skriptOperation.value().asOperator();
-            final @NotNull Class<?> returnType = method.getReturnType();
-            if (Modifier.isStatic(method.getModifiers())) {
-                final @NotNull Class<?> @NotNull[] parameterTypes = requireMethodParameterCount(method, 2);
-                registerOperation(operator, parameterTypes[0], parameterTypes[1], returnType,
-                        (left, right) -> method.invoke(null, left, right));
-            } else {
-                final @NotNull Class<?> @NotNull[] parameterTypes = requireMethodParameterCount(method, 1);
-                registerOperation(operator, clazz, parameterTypes[0], returnType, method::invoke);
-            }
+            registerOperation(skriptOperation.value().asOperator(), asOperationMethod(method), skriptOperation.commutative());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <L, R, T> @NotNull OperationMethod<L, R, T> asOperationMethod(@NotNull Method method) {
+        final @NotNull Class<T> returnType = (Class<T>) Primitives.wrap(method.getReturnType());
+        if (Modifier.isStatic(method.getModifiers())) {
+            final @NotNull Class<?> @NotNull[] parameterTypes = requireMethodParameterCount(method, 2);
+            final @NotNull Class<L> leftType = (Class<L>) Primitives.wrap(parameterTypes[0]);
+            final @NotNull Class<R> rightType = (Class<R>) Primitives.wrap(parameterTypes[1]);
+            return new OperationMethod<>(leftType, rightType, returnType) {
+
+                @Override
+                public Object invoke(Object left, Object right) throws IllegalAccessException, InvocationTargetException {
+                    return method.invoke(null, left, right);
+                }
+
+            };
+        } else {
+            final @NotNull Class<R> rightType = (Class<R>) Primitives.wrap(requireMethodParameterCount(method, 1)[0]);
+            return new OperationMethod<>((Class<L>) method.getDeclaringClass(), rightType, returnType) {
+
+                @Override
+                public Object invoke(Object left, Object right) throws IllegalAccessException, InvocationTargetException {
+                    return method.invoke(left, right);
+                }
+
+            };
         }
     }
 
@@ -236,20 +280,15 @@ public final class BaskAPI {
         return parameterTypes;
     }
 
-    @SuppressWarnings("unchecked")
-    private static <L, R, T> void registerOperation(
-            Operator operator, Class<L> leftClass, Class<R> rightClass, Class<T> returnType,
-            OperationMethod operationMethod) {
-        Arithmetics.registerOperation(operator, leftClass, rightClass, returnType, (left, right) -> {
-            try {
-                return (T) operationMethod.invoke(left, right);
-            } catch (InvocationTargetException e) {
-                Skript.error("Operation failed: " + e.getTargetException());
-                return null;
-            } catch (IllegalAccessException e) {
-                throw new BaskAPIException(e);
-            }
-        });
+    private static <L, R, T> void registerOperation(Operator operator, @NotNull OperationMethod<L, R, T> operationMethod,
+                                                    boolean commutative) {
+        Arithmetics.registerOperation(
+                operator, operationMethod.leftType, operationMethod.rightType, operationMethod.returnType, operationMethod);
+        if (commutative && !operationMethod.leftType.equals(operationMethod.rightType)) {
+            Arithmetics.registerOperation(
+                    operator, operationMethod.rightType, operationMethod.leftType, operationMethod.returnType,
+                    ((left, right) -> operationMethod.calculate(right, left)));
+        }
     }
 
 }

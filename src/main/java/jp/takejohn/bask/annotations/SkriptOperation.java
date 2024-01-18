@@ -11,4 +11,6 @@ public @interface SkriptOperation {
 
     SkriptOperator value();
 
+    boolean commutative() default false;
+
 }

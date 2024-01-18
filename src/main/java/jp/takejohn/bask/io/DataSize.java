@@ -98,6 +98,12 @@ public final class DataSize implements Serializable, Comparable<DataSize> {
         return new DataSize(this.bytes - val.bytes);
     }
 
+    @SkriptOperation(value = SkriptOperator.MULTIPLICATION, commutative = true)
+    @Contract(value = "_ -> new", pure = true)
+    public @NotNull DataSize multiply(long multiple) {
+        return new DataSize(this.bytes * multiple);
+    }
+
     @Override
     @Contract(pure = true)
     public boolean equals(Object object) {
