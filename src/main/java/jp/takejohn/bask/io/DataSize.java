@@ -1,8 +1,6 @@
 package jp.takejohn.bask.io;
 
-import jp.takejohn.bask.annotations.SkriptDoc;
-import jp.takejohn.bask.annotations.SkriptType;
-import jp.takejohn.bask.annotations.SkriptTypeParse;
+import jp.takejohn.bask.annotations.*;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,12 +84,14 @@ public final class DataSize implements Serializable, Comparable<DataSize> {
         return bytes;
     }
 
+    @SkriptOperation(SkriptOperator.ADDITION)
     @Contract(value = "_ -> new", pure = true)
     public @NotNull DataSize add(@NotNull DataSize val) {
         Objects.requireNonNull(val, "val cannnot be null");
         return new DataSize(this.bytes + val.bytes);
     }
 
+    @SkriptOperation(SkriptOperator.SUBTRACTION)
     @Contract(value = "_ -> new", pure = true)
     public @NotNull DataSize subtract(@NotNull DataSize val) {
         Objects.requireNonNull(val, "val cannot be null");

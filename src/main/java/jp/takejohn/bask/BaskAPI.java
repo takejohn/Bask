@@ -9,6 +9,8 @@ import jp.takejohn.bask.annotations.*;
 import jp.takejohn.bask.classes.ContextParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.lang.arithmetic.Arithmetics;
+import org.skriptlang.skript.lang.arithmetic.Operator;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -31,6 +33,13 @@ public final class BaskAPI {
         public @NotNull String toVariableNameString(@NotNull T o) {
             return o.toString();
         }
+
+    }
+
+    @FunctionalInterface
+    private interface OperationMethod {
+
+        Object invoke(Object left, Object right) throws IllegalAccessException, InvocationTargetException;
 
     }
 
@@ -57,6 +66,8 @@ public final class BaskAPI {
             classInfo.parser(parser);
             Classes.registerClass(classInfo);
         }
+
+        registerArithmetics(clazz);
     }
 
     /**
@@ -194,6 +205,51 @@ public final class BaskAPI {
                     method.getName(), SkriptTypeParse.class.getName(), method.getDeclaringClass().getName(),
                     returnType.getName()));
         }
+    }
+
+    public static <T> void registerArithmetics(@NotNull Class<T> clazz) {
+        for (@NotNull Method method : clazz.getDeclaredMethods()) {
+            final @Nullable SkriptOperation skriptOperation = method.getAnnotation(SkriptOperation.class);
+            if (skriptOperation == null) {
+                continue;
+            }
+            final @NotNull Operator operator = skriptOperation.value().asOperator();
+            final @NotNull Class<?> returnType = method.getReturnType();
+            if (Modifier.isStatic(method.getModifiers())) {
+                final @NotNull Class<?> @NotNull[] parameterTypes = requireMethodParameterCount(method, 2);
+                registerOperation(operator, parameterTypes[0], parameterTypes[1], returnType,
+                        (left, right) -> method.invoke(null, left, right));
+            } else {
+                final @NotNull Class<?> @NotNull[] parameterTypes = requireMethodParameterCount(method, 1);
+                registerOperation(operator, clazz, parameterTypes[0], returnType, method::invoke);
+            }
+        }
+    }
+
+    private static @NotNull Class<?> @NotNull[] requireMethodParameterCount(@NotNull Method method, int count) {
+        final @NotNull Class<?> @NotNull[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length != count) {
+            throw new BaskAPIException(MessageFormat.format(
+                    "Method {0} annotated with @{1} in class {2} must have {3} parameter(s)",
+                    method.getName(), SkriptOperation.class.getName(), method.getDeclaringClass().getName(), count));
+        }
+        return parameterTypes;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <L, R, T> void registerOperation(
+            Operator operator, Class<L> leftClass, Class<R> rightClass, Class<T> returnType,
+            OperationMethod operationMethod) {
+        Arithmetics.registerOperation(operator, leftClass, rightClass, returnType, (left, right) -> {
+            try {
+                return (T) operationMethod.invoke(left, right);
+            } catch (InvocationTargetException e) {
+                Skript.error("Operation failed: " + e.getTargetException());
+                return null;
+            } catch (IllegalAccessException e) {
+                throw new BaskAPIException(e);
+            }
+        });
     }
 
 }
