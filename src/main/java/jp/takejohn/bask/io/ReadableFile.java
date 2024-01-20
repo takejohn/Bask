@@ -22,9 +22,22 @@ public class ReadableFile extends OpenedFile {
 
     final @NotNull InputStream inputStream;
 
+    @Nullable Blob lastlyReadData;
+
     public ReadableFile(@NotNull Path path) throws IOException {
         super(path);
         inputStream = new BufferedInputStream(Files.newInputStream(path));
+    }
+
+    public static @Nullable ReadableFile open(@Nullable Path path) {
+        if (path == null) {
+            return null;
+        }
+        try {
+            return new ReadableFile(path);
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     /**
@@ -43,7 +56,16 @@ public class ReadableFile extends OpenedFile {
         if (length < 0) {
             return null;
         }
-        return new Blob(buffer, length);
+        return setLastlyReadData(new Blob(buffer, length));
+    }
+
+    protected @Nullable Blob setLastlyReadData(@Nullable Blob data) {
+        lastlyReadData = data;
+        return data;
+    }
+
+    public @Nullable Blob lastlyReadData() {
+        return lastlyReadData;
     }
 
     @Override

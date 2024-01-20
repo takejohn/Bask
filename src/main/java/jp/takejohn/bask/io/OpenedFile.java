@@ -5,6 +5,7 @@ import jp.takejohn.bask.annotations.SkriptDoc;
 import jp.takejohn.bask.annotations.SkriptType;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -14,7 +15,7 @@ import java.nio.file.Path;
         description = "An opened file.",
         since = "0.1.0"
 )
-public abstract class OpenedFile extends AbstractResource<IOException> {
+public abstract class OpenedFile extends AbstractResource<IOException> implements Closeable {
 
     private final @NotNull Path path;
 
