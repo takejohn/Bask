@@ -20,39 +20,36 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.*;
 
 @Name("With File")
 @Description("A section to handle files")
 @Since("0.1.0")
-public class SecOpenFile extends Section {
+public class SecOpenFile extends LoopSection {
 
     static {
         Skript.registerSection(SecOpenFile.class, "open file %string% for reading");
     }
 
-    private static class AutoClose extends TriggerItem {
-
-        private final @NotNull ExceptionStoringResource resource;
-
-        public AutoClose(@NotNull ExceptionStoringResource resource) {
-            this.resource = resource;
-        }
+    private final TriggerItem autoClose = new TriggerItem() {
 
         @Override
         protected boolean run(@NotNull Event event) {
-            resource.close();
+            SecOpenFile.this.exit(event);
             return true;
         }
 
         @Override
         public @NotNull String toString(@Nullable Event event, boolean debug) {
-            return "auto-close";
+            return "auto-close: " + SecOpenFile.this.toString(event, debug);
         }
 
-    }
+    };
 
     private Expression<String> pathExpression;
+
+    private final Map<@NotNull Event, @Nullable ExceptionStoringResource> resourceMap =
+            Collections.synchronizedMap(new WeakHashMap<>(1));
 
     @SuppressWarnings("unchecked")
     @Override
@@ -62,7 +59,23 @@ public class SecOpenFile extends Section {
         ParserInstance.get().setHasDelayBefore(Kleenean.TRUE);
         pathExpression = (Expression<String>) expressions[0];
         loadCode(sectionNode);
+        setNext(autoClose);
+        last = autoClose;
         return true;
+    }
+
+    @Override
+    public @Nullable TriggerItem getActualNext() {
+        return getNext();
+    }
+
+    @Override
+    public void exit(@NotNull Event event) {
+        final @Nullable ExceptionStoringResource resource = resourceMap.remove(event);
+        if (resource != null) {
+            BaskTasks.runAsync(resource::close);
+        }
+        super.exit(event);
     }
 
     @Override
@@ -73,18 +86,12 @@ public class SecOpenFile extends Section {
         final @Nullable String pathString = pathExpression.getSingle(event);
         final @Nullable Path path = pathString != null ? Paths.get(pathString) : null;
         BaskTasks.supplyAsync(() -> ReadableFile.open(path)).thenAccept(openedFile -> {
-            final TriggerItem autoClose = new AutoClose(openedFile);
-            if (super.getNext() != null) {
-                autoClose.setNext(super.getNext());
-            }
-            setNext(autoClose);
+            resourceMap.put(event, openedFile);
             Variables.setLocalVariables(event, locals);
             final @Nullable TriggerItem next = first != null ? first : getNext();
-            if (next != null) {
-                final @Nullable Object timing = startTiming();
-                TriggerItem.walk(next, event);
-                stopTiming(timing);
-            }
+            final @Nullable Object timing = startTiming();
+            TriggerItem.walk(next, event);
+            stopTiming(timing);
         });
         return null;
     }
@@ -102,7 +109,7 @@ public class SecOpenFile extends Section {
         return null;
     }
 
-    public void stopTiming(@Nullable Object timing) {
+    private void stopTiming(@Nullable Object timing) {
         SkriptTimings.stop(timing);
     }
 

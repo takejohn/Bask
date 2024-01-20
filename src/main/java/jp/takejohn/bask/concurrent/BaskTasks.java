@@ -13,6 +13,13 @@ public final class BaskTasks {
         throw new AssertionError();
     }
 
+    public static void runAsync(Runnable runnable) {
+        supplyAsync(() -> {
+            runnable.run();
+            return null;
+        });
+    }
+
     public static <T> @NotNull CompletableFuture<T> supplyAsync(Supplier<T> supplier) {
         final @NotNull CompletableFuture<T> future = new BaskCompletableFuture<>();
         Bukkit.getScheduler().runTaskAsynchronously(Bask.getInstance(), () -> {
