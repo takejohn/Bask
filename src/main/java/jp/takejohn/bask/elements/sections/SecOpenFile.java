@@ -22,8 +22,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-@Name("With File")
-@Description("A section to handle files")
+@Name("Open File")
+@Description("A section to handle files.")
 @Since("0.1.0")
 public class SecOpenFile extends LoopSection {
 
