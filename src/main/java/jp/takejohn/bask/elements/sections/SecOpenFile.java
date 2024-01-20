@@ -89,9 +89,11 @@ public class SecOpenFile extends LoopSection {
             resourceMap.put(event, openedFile);
             Variables.setLocalVariables(event, locals);
             final @Nullable TriggerItem next = first != null ? first : getNext();
-            final @Nullable Object timing = startTiming();
-            TriggerItem.walk(next, event);
-            stopTiming(timing);
+            if (next != null) {
+                final @Nullable Object timing = startTiming();
+                TriggerItem.walk(next, event);
+                stopTiming(timing);
+            }
         });
         return null;
     }
