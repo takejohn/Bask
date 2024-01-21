@@ -11,8 +11,8 @@ import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.skript.timings.SkriptTimings;
 import ch.njol.skript.variables.Variables;
 import ch.njol.util.Kleenean;
-import jp.takejohn.bask.ExceptionStoringResource;
 import jp.takejohn.bask.concurrent.BaskTasks;
+import jp.takejohn.bask.io.OpenedFile;
 import jp.takejohn.bask.io.ReadableFile;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
@@ -48,8 +48,10 @@ public class SecOpenFile extends LoopSection {
 
     private Expression<String> pathExpression;
 
-    private final Map<@NotNull Event, @Nullable ExceptionStoringResource> resourceMap =
+    private final Map<@NotNull Event, @Nullable OpenedFile> resourceMap =
             Collections.synchronizedMap(new WeakHashMap<>(1));
+
+    private static final Class<? extends OpenedFile> resourceType = ReadableFile.class;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -64,6 +66,14 @@ public class SecOpenFile extends LoopSection {
         return true;
     }
 
+    public Class<? extends OpenedFile> getResourceType() {
+        return resourceType;
+    }
+
+    public OpenedFile getResource(@NotNull Event event) {
+        return resourceMap.get(event);
+    }
+
     @Override
     public @Nullable TriggerItem getActualNext() {
         return getNext();
@@ -71,7 +81,7 @@ public class SecOpenFile extends LoopSection {
 
     @Override
     public void exit(@NotNull Event event) {
-        final @Nullable ExceptionStoringResource resource = resourceMap.remove(event);
+        final @Nullable OpenedFile resource = resourceMap.remove(event);
         if (resource != null) {
             BaskTasks.runAsync(resource::close);
         }
