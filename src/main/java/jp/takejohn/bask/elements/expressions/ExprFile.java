@@ -18,7 +18,7 @@ public class ExprFile extends SimpleExpression<OpenedFile> {
 
     static {
         Skript.registerExpression(ExprFile.class, OpenedFile.class, ExpressionType.SIMPLE,
-                "file", "file-<\\d+>");
+                "[the ]file", "[the ]file(-| )<\\d+>");
     }
 
     private int sectionDepth;
