@@ -3,6 +3,7 @@ package jp.takejohn.bask.elements.effects;
 import ch.njol.skript.Skript;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser;
+import ch.njol.skript.lang.TriggerItem;
 import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.skript.util.AsyncEffect;
 import ch.njol.util.Kleenean;
@@ -36,6 +37,20 @@ public class EffRead extends AsyncEffect {
                 return false;
         }
         return true;
+    }
+
+    @Override
+    protected @Nullable TriggerItem walk(@NotNull Event event) {
+        final @Nullable OpenedFile openedFile = openedFileExpression.getSingle(event);
+        if (!(openedFile instanceof ReadableFile readableFile)) {
+            return getNext();
+        }
+        final @Nullable DataSize dataSize = dataSizeExpression.getSingle(event);
+        if (dataSize == null || readableFile.availableBytes() >= dataSize.asBytes()) {
+            readableFile.read(dataSize);
+            return getNext();
+        }
+        return super.walk(event);
     }
 
     @Override

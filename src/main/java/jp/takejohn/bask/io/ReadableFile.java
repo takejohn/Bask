@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
 
 @SkriptType(value = "readablefile", user = "readable[ ]files?")
 @SkriptDoc(
@@ -46,7 +45,9 @@ public class ReadableFile extends OpenedFile {
      * @return the read data or null if reaches to the end of file or an error occurs
      */
     public @Nullable Blob read(@Nullable DataSize maxSize) {
-        Objects.requireNonNull(maxSize, "maxSize cannot be null");
+        if (maxSize == null) {
+            return setLastlyReadData(null);
+        }
         final long maxLength = maxSize.asBytes();
         if (maxLength > Integer.MAX_VALUE) {
            return setLastlyReadData(null);
@@ -66,6 +67,14 @@ public class ReadableFile extends OpenedFile {
 
     public @Nullable Blob lastlyReadData() {
         return lastlyReadData;
+    }
+
+    public int availableBytes() {
+        try {
+            return inputStream.available();
+        } catch (IOException e) {
+            return 0;
+        }
     }
 
     @Override
