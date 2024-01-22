@@ -3,6 +3,7 @@ package jp.takejohn.bask.elements;
 import jp.takejohn.bask.BaskAPI;
 import jp.takejohn.bask.ExceptionStoringResource;
 import jp.takejohn.bask.elements.effects.EffRead;
+import jp.takejohn.bask.elements.expressions.ExprBuffer;
 import jp.takejohn.bask.elements.expressions.ExprFile;
 import jp.takejohn.bask.elements.expressions.ExprNone;
 import jp.takejohn.bask.elements.sections.SecOpenFile;
@@ -29,6 +30,7 @@ public final class ClassRegistry {
         loadClass(SecOpenFile.class);
         loadClass(ExprFile.class);
         loadClass(EffRead.class);
+        loadClass(ExprBuffer.class);
     }
 
     public static void loadClass(@NotNull Class<?> clazz) {

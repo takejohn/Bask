@@ -49,12 +49,12 @@ public class ReadableFile extends OpenedFile {
         Objects.requireNonNull(maxSize, "maxSize cannot be null");
         final long maxLength = maxSize.asBytes();
         if (maxLength > Integer.MAX_VALUE) {
-            return null;
+           return setLastlyReadData(null);
         }
         final byte[] buffer = new byte[(int) maxLength];
         final int length = execute(() -> inputStream.read(buffer));
         if (length < 0) {
-            return null;
+            return setLastlyReadData(null);
         }
         return setLastlyReadData(new Blob(buffer, length));
     }
