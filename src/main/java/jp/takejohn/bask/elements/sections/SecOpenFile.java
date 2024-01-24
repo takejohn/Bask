@@ -28,7 +28,7 @@ import java.util.*;
 public class SecOpenFile extends LoopSection {
 
     static {
-        Skript.registerSection(SecOpenFile.class, "open file %string% for reading");
+        Skript.registerSection(SecOpenFile.class, "open binary file %string% for reading");
     }
 
     private final TriggerItem autoClose = new TriggerItem() {
@@ -110,7 +110,7 @@ public class SecOpenFile extends LoopSection {
 
     @Override
     public @NotNull String toString(@Nullable Event event, boolean debug) {
-        return "open file " + pathExpression.toString(event, debug) + " for reading";
+        return "open binary file " + pathExpression.toString(event, debug) + " for reading";
     }
 
     private @Nullable Object startTiming() {

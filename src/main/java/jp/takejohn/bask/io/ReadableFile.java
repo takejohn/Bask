@@ -11,10 +11,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-@SkriptType(value = "readablefile", user = "readable[ ]files?")
+@SkriptType(value = "readablebinaryfile", user = "readable[ ]binary[ ]files?")
 @SkriptDoc(
-        name = "Readable File",
-        description = "A file opened for reading.",
+        name = "Readable Binary File",
+        description = "A binary file opened for reading.",
         since = "0.1.0"
 )
 public class ReadableFile extends OpenedFile {

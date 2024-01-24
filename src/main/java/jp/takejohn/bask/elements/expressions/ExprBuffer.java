@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 public class ExprBuffer extends SimplePropertyExpression<OpenedFile, Blob> {
 
     static {
-        PropertyExpression.register(ExprBuffer.class, Blob.class, "buffer", "openedfile");
+        PropertyExpression.register(ExprBuffer.class, Blob.class, "binary buffer", "openedfile");
     }
 
     @Override
@@ -26,7 +26,7 @@ public class ExprBuffer extends SimplePropertyExpression<OpenedFile, Blob> {
         }
         final Expression<? extends OpenedFile> expr = getExpr();
         if (expr instanceof ExprFile exprFile && !ReadableFile.class.isAssignableFrom(exprFile.getReturnType())) {
-            Skript.error("The file is not for reading");
+            Skript.error("The file is not a readable binary file");
             return false;
         }
         return true;
@@ -42,7 +42,7 @@ public class ExprBuffer extends SimplePropertyExpression<OpenedFile, Blob> {
 
     @Override
     protected @NotNull String getPropertyName() {
-        return "buffer";
+        return "binary buffer";
     }
 
     @Override
