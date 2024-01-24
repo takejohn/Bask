@@ -13,13 +13,13 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ReadableFileTest {
+class ReadableBinaryFileTest {
 
     private static Path path;
 
     @BeforeAll
     static void before() {
-        final URL url = ReadableFileTest.class.getClassLoader().getResource("test/dummy.txt");
+        final URL url = ReadableBinaryFileTest.class.getClassLoader().getResource("test/dummy.txt");
         try {
             final URI uri = Objects.requireNonNull(url).toURI();
             path = Paths.get(uri);
@@ -30,7 +30,7 @@ class ReadableFileTest {
 
     @Test
     void read() {
-        try (final ReadableFile file = new ReadableFile(path)) {
+        try (final ReadableBinaryFile file = new ReadableBinaryFile(path)) {
             assertEquals(Blob.valueOf("b\"012\""), file.read(DataSize.valueOf("3 bytes")));
             assertEquals(Blob.valueOf("b\"3\""), file.read(DataSize.valueOf("1 byte")));
             assertEquals(Blob.valueOf("b\"\""), file.read(DataSize.valueOf("0 byte")));

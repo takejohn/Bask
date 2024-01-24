@@ -10,7 +10,7 @@ import ch.njol.util.Kleenean;
 import jp.takejohn.bask.elements.expressions.ExprFile;
 import jp.takejohn.bask.io.DataSize;
 import jp.takejohn.bask.io.OpenedFile;
-import jp.takejohn.bask.io.ReadableFile;
+import jp.takejohn.bask.io.ReadableBinaryFile;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +32,7 @@ public class EffRead extends AsyncEffect {
         ParserInstance.get().setHasDelayBefore(Kleenean.TRUE);
         dataSizeExpression = (Expression<DataSize>) expressions[0];
         openedFileExpression = (Expression<OpenedFile>) expressions[1];
-        if (openedFileExpression instanceof ExprFile exprFile && !ReadableFile.class.isAssignableFrom(exprFile.getReturnType())) {
+        if (openedFileExpression instanceof ExprFile exprFile && !ReadableBinaryFile.class.isAssignableFrom(exprFile.getReturnType())) {
                 Skript.error("The file is not for reading");
                 return false;
         }
@@ -42,12 +42,12 @@ public class EffRead extends AsyncEffect {
     @Override
     protected @Nullable TriggerItem walk(@NotNull Event event) {
         final @Nullable OpenedFile openedFile = openedFileExpression.getSingle(event);
-        if (!(openedFile instanceof ReadableFile readableFile)) {
+        if (!(openedFile instanceof ReadableBinaryFile readableBinaryFile)) {
             return getNext();
         }
         final @Nullable DataSize dataSize = dataSizeExpression.getSingle(event);
-        if (dataSize == null || readableFile.availableBytes() >= dataSize.asBytes()) {
-            readableFile.read(dataSize);
+        if (dataSize == null || readableBinaryFile.availableBytes() >= dataSize.asBytes()) {
+            readableBinaryFile.read(dataSize);
             return getNext();
         }
         return super.walk(event);
@@ -56,8 +56,8 @@ public class EffRead extends AsyncEffect {
     @Override
     protected void execute(@NotNull Event event) {
         final @Nullable OpenedFile openedFile = openedFileExpression.getSingle(event);
-        if (openedFile instanceof ReadableFile readableFile) {
-            readableFile.read(dataSizeExpression.getSingle(event));
+        if (openedFile instanceof ReadableBinaryFile readableBinaryFile) {
+            readableBinaryFile.read(dataSizeExpression.getSingle(event));
         }
     }
 

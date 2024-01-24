@@ -13,7 +13,7 @@ import ch.njol.skript.variables.Variables;
 import ch.njol.util.Kleenean;
 import jp.takejohn.bask.concurrent.BaskTasks;
 import jp.takejohn.bask.io.OpenedFile;
-import jp.takejohn.bask.io.ReadableFile;
+import jp.takejohn.bask.io.ReadableBinaryFile;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +51,7 @@ public class SecOpenFile extends LoopSection {
     private final Map<@NotNull Event, @Nullable OpenedFile> resourceMap =
             Collections.synchronizedMap(new WeakHashMap<>(1));
 
-    private static final Class<? extends OpenedFile> resourceType = ReadableFile.class;
+    private static final Class<? extends OpenedFile> resourceType = ReadableBinaryFile.class;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -95,7 +95,7 @@ public class SecOpenFile extends LoopSection {
         final @Nullable Object locals = Variables.removeLocals(event);
         final @Nullable String pathString = pathExpression.getSingle(event);
         final @Nullable Path path = pathString != null ? Paths.get(pathString) : null;
-        BaskTasks.supplyAsync(() -> ReadableFile.open(path)).thenAccept(openedFile -> {
+        BaskTasks.supplyAsync(() -> ReadableBinaryFile.open(path)).thenAccept(openedFile -> {
             resourceMap.put(event, openedFile);
             Variables.setLocalVariables(event, locals);
             final @Nullable TriggerItem next = first != null ? first : getNext();

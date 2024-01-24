@@ -8,7 +8,7 @@ import ch.njol.skript.lang.SkriptParser;
 import ch.njol.util.Kleenean;
 import jp.takejohn.bask.io.Blob;
 import jp.takejohn.bask.io.OpenedFile;
-import jp.takejohn.bask.io.ReadableFile;
+import jp.takejohn.bask.io.ReadableBinaryFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +25,7 @@ public class ExprBuffer extends SimplePropertyExpression<OpenedFile, Blob> {
             return false;
         }
         final Expression<? extends OpenedFile> expr = getExpr();
-        if (expr instanceof ExprFile exprFile && !ReadableFile.class.isAssignableFrom(exprFile.getReturnType())) {
+        if (expr instanceof ExprFile exprFile && !ReadableBinaryFile.class.isAssignableFrom(exprFile.getReturnType())) {
             Skript.error("The file is not a readable binary file");
             return false;
         }
@@ -34,8 +34,8 @@ public class ExprBuffer extends SimplePropertyExpression<OpenedFile, Blob> {
 
     @Override
     public @Nullable Blob convert(OpenedFile from) {
-        if (from instanceof ReadableFile readableFile) {
-            return readableFile.lastlyReadData();
+        if (from instanceof ReadableBinaryFile readableBinaryFile) {
+            return readableBinaryFile.lastlyReadData();
         }
         return null;
     }

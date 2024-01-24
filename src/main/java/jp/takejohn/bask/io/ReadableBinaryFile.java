@@ -17,23 +17,23 @@ import java.nio.file.Path;
         description = "A binary file opened for reading.",
         since = "0.1.0"
 )
-public class ReadableFile extends OpenedFile {
+public class ReadableBinaryFile extends OpenedFile {
 
     final @NotNull InputStream inputStream;
 
     @Nullable Blob lastlyReadData;
 
-    public ReadableFile(@NotNull Path path) throws IOException {
+    public ReadableBinaryFile(@NotNull Path path) throws IOException {
         super(path);
         inputStream = new BufferedInputStream(Files.newInputStream(path));
     }
 
-    public static @Nullable ReadableFile open(@Nullable Path path) {
+    public static @Nullable ReadableBinaryFile open(@Nullable Path path) {
         if (path == null) {
             return null;
         }
         try {
-            return new ReadableFile(path);
+            return new ReadableBinaryFile(path);
         } catch (IOException e) {
             return null;
         }
