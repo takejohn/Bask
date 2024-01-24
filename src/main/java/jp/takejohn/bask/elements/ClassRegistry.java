@@ -2,6 +2,7 @@ package jp.takejohn.bask.elements;
 
 import jp.takejohn.bask.BaskAPI;
 import jp.takejohn.bask.ExceptionStoringResource;
+import jp.takejohn.bask.elements.conditions.CondEver;
 import jp.takejohn.bask.elements.effects.EffRead;
 import jp.takejohn.bask.elements.expressions.ExprBuffer;
 import jp.takejohn.bask.elements.expressions.ExprFile;
@@ -27,6 +28,7 @@ public final class ClassRegistry {
         BaskAPI.register(ReadableBinaryFile.class);
 
         loadClass(ExprNone.class);
+        loadClass(CondEver.class);
         loadClass(SecOpenFile.class);
         loadClass(ExprFile.class);
         loadClass(EffRead.class);
